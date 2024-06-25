@@ -1,0 +1,9 @@
+services:
+  app:
+    build: .
+    env_file: .env
+    sysctls:
+      - net.ipv4.tcp_keepalive_time=200
+    volumes:
+      - ./inputs:/usr/src/app/inputs
+      - ./outputs:/usr/src/app/outputs
