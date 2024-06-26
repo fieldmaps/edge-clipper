@@ -14,8 +14,8 @@ def main(lvl: int, _, admx_files: list):
                 "ogr2ogr",
                 *["--config", "PG_USE_COPY", "YES"],
                 "-append",
-                *["-f", "PostgreSQL"],
                 *["-nln", f"adm{lvl}_polygons"],
+                *["-f", "PostgreSQL"],
                 f"PG:dbname={DATABASE}",
                 *[f"PG:dbname={DATABASE}", f"adm{lvl}_{name}"],
             ]

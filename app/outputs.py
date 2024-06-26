@@ -18,7 +18,10 @@ def output_ogr(file, lvl):
             "-unsetFid",
         ]
         if file.suffix == ".gdb"
-        else ["-mapFieldType", "DateTime=Date"]
+        else [
+            *["-lco", "FID=fid"],
+            *["-mapFieldType", "DateTime=Date"],
+        ]
     )
     subprocess.run(
         [

@@ -63,9 +63,8 @@ def get_adm0_file():
 
 def get_admx_files():
     input_dir = cwd / "../inputs/admx"
-    files = list(input_dir.iterdir())
-    files = [f for f in files if not f.name.startswith(".")]
-    return sorted(files)
+    files = sorted(input_dir.iterdir(), key=lambda x: x.stat().st_size)
+    return [f for f in files if not f.name.startswith(".")]
 
 
 def get_adm_id(lvl: int):
