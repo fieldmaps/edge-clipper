@@ -27,9 +27,11 @@ def main(conn, file):
             SQL(query_1).format(
                 table_in=Identifier(f"adm{lvl+1}_{name}"),
                 ids_src=SQL(",").join(
-                    map(lambda x: Identifier("a", x), get_src_ids(lvl))
+                    map(lambda x: Identifier("a", x), get_src_ids(conn, name, lvl))
                 ),
-                ids_wld=SQL(",").join(map(lambda x: Identifier("a", x), get_wld_ids())),
+                ids_wld=SQL(",").join(
+                    map(lambda x: Identifier("a", x), get_wld_ids(conn))
+                ),
                 table_out=Identifier(f"adm{lvl}_{name}"),
             )
         )

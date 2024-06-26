@@ -11,41 +11,51 @@ from .utils import DATABASE
 logger = logging.getLogger(__name__)
 
 query_1 = """
-    ALTER TABLE adm0_polygons
-    DROP COLUMN IF EXISTS fid;
+    SELECT * FROM {table_in};
 """
 query_2 = """
-    DROP TABLE IF EXISTS adm0_attributes;
-    CREATE TABLE adm0_attributes AS
+    DROP TABLE IF EXISTS {table_out};
+    CREATE TABLE {table_out} AS
     SELECT {cols}
-    FROM adm0_polygons;
+    FROM {table_in};
 """
+
+
+def create_attr_table(table_in: str, table_out: str):
+    conn = connect(f"dbname={DATABASE}", autocommit=True)
+    cur = conn.cursor(row_factory=dict_row)
+    row = cur.execute(SQL(query_1).format(table_in=Identifier(table_in))).fetchone()
+    cols = list(row.keys())
+    cols.remove("fid")
+    cols.remove("geom")
+    conn.execute(
+        SQL(query_2).format(
+            table_in=Identifier(table_in),
+            cols=SQL(",").join(map(Identifier, cols)),
+            table_out=Identifier(table_out),
+        )
+    )
+    conn.close()
 
 
 def adm0(file: Path):
     subprocess.run(
         [
             "ogr2ogr",
-            "-overwrite",
             "-makevalid",
+            "-overwrite",
             *["-dim", "XY"],
-            *["-t_srs", "EPSG:4326"],
             *["-lco", "FID=fid"],
             *["-lco", "GEOMETRY_NAME=geom"],
             *["-lco", "LAUNDER=NO"],
             *["-nln", "adm0_polygons"],
+            *["-nlt", "PROMOTE_TO_MULTI"],
+            *["-t_srs", "EPSG:4326"],
             *["-f", "PostgreSQL", f"PG:dbname={DATABASE}"],
             file,
         ]
     )
-    conn = connect(f"dbname={DATABASE}", autocommit=True)
-    conn.execute(SQL(query_1))
-    cur = conn.cursor(row_factory=dict_row)
-    row = cur.execute(SQL("SELECT * FROM adm0_polygons;")).fetchone()
-    colnames = list(row.keys())
-    colnames.remove("geom")
-    conn.execute(SQL(query_2).format(cols=SQL(",").join(map(Identifier, colnames))))
-    conn.close()
+    create_attr_table("adm0_polygons", "adm0_attributes")
     logger.info(file.stem)
 
 
@@ -53,16 +63,17 @@ def admx(_, file: Path):
     subprocess.run(
         [
             "ogr2ogr",
-            "-overwrite",
             "-makevalid",
+            "-overwrite",
             *["-dim", "XY"],
-            *["-t_srs", "EPSG:4326"],
-            *["-nlt", "PROMOTE_TO_MULTI"],
             *["-lco", "FID=fid"],
             *["-lco", "GEOMETRY_NAME=geom"],
             *["-lco", "LAUNDER=NO"],
             *["-nln", f"admx_{file.stem}"],
+            *["-nlt", "PROMOTE_TO_MULTI"],
+            *["-t_srs", "EPSG:4326"],
             *["-f", "PostgreSQL", f"PG:dbname={DATABASE}"],
             file,
         ]
     )
+    create_attr_table(f"admx_{file.stem}", f"admx_{file.stem}_attributes")

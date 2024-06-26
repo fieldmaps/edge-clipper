@@ -3,7 +3,7 @@ from pathlib import Path
 
 from psycopg.sql import SQL, Identifier, Literal
 
-from .utils import ADM_LEVELS, get_adm_id, get_src_ids, get_wld_ids
+from .utils import ADM0_JOIN, ADM_LEVELS, get_adm_id, get_src_ids, get_wld_ids
 
 logger = logging.getLogger(__name__)
 
@@ -48,7 +48,7 @@ query_5 = """
         a.geom
     FROM {table_in1} AS a
     JOIN {table_in2} AS b
-    ON b.adm0_src = a.id_join
+    ON {join} = a.id_join
     ORDER BY {adm_id};
     CREATE INDEX ON {table_out} USING GIST(geom);
 """
@@ -71,7 +71,7 @@ def main(conn, file: Path):
             table_out=Identifier(f"admx_{name}_tmp1"),
         )
     )
-    for id in get_src_ids():
+    for id in get_src_ids(conn, name):
         conn.execute(
             SQL(query_3).format(
                 name=Identifier(id),
@@ -88,8 +88,11 @@ def main(conn, file: Path):
             table_in1=Identifier(f"admx_{name}_tmp1"),
             table_in2=Identifier("adm0_polygons"),
             adm_id=Identifier(get_adm_id(ADM_LEVELS)),
-            ids_src=SQL(",").join(map(lambda x: Identifier("a", x), get_src_ids())),
-            ids_wld=SQL(",").join(map(lambda x: Identifier("b", x), get_wld_ids())),
+            join=Identifier("b", ADM0_JOIN),
+            ids_src=SQL(",").join(
+                map(lambda x: Identifier("a", x), get_src_ids(conn, name))
+            ),
+            ids_wld=SQL(",").join(map(lambda x: Identifier("b", x), get_wld_ids(conn))),
             table_out=Identifier(f"admx_{name}_1"),
         )
     )

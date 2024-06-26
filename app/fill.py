@@ -6,11 +6,10 @@ from psycopg.sql import SQL, Identifier, Literal
 
 from .utils import (
     ADM0_ID,
-    ADM_JOIN,
+    ADM0_JOIN,
     ADM_LEVELS,
     DATABASE,
     get_adm_id,
-    get_src_ids,
     get_wld_ids,
 )
 
@@ -27,14 +26,14 @@ query_1 = """
     SELECT * FROM {table_in}
     WHERE {join} NOT IN ({ids});
 """
-query_1a = """
+query_2 = """
     ALTER TABLE {table_out}
     ADD COLUMN IF NOT EXISTS {name} VARCHAR;
 """
-query_2 = (
+query_3 = (
     f"UPDATE {{table_out}} SET {','.join([*adm4_id, *adm3_id, *adm2_id, *adm1_id])};"
 )
-query_3 = """
+query_4 = """
     DROP TABLE IF EXISTS {table_out};
     CREATE TABLE {table_out} AS
     SELECT
@@ -51,48 +50,55 @@ drop_tmp = """
 def main(admx_files: list):
     join_list = map(lambda x: x.stem, admx_files)
     conn = connect(f"dbname={DATABASE}", autocommit=True)
-    for lvl in range(1, ADM_LEVELS + 1):
+    for lvl in range(ADM_LEVELS, 0, -1):
         conn.execute(
             SQL(drop_tmp).format(table_tmp1=Identifier(f"adm{lvl}_polygons_1"))
         )
     conn.execute(
         SQL(query_1).format(
             table_in=Identifier("adm0_polygons"),
-            join=Identifier(ADM_JOIN),
+            join=Identifier(ADM0_JOIN),
             ids=SQL(",").join(map(Literal, join_list)),
             table_out=Identifier(f"adm{ADM_LEVELS}_polygons_tmp1"),
         )
     )
-    for id in get_src_ids():
+    for lvl in range(ADM_LEVELS, 0, -1):
         conn.execute(
-            SQL(query_1a).format(
-                name=Identifier(id),
+            SQL(query_2).format(
+                name=Identifier(get_adm_id(lvl)),
                 table_out=Identifier(f"adm{ADM_LEVELS}_polygons_tmp1"),
             )
         )
     conn.execute(
-        SQL(query_2).format(
+        SQL(query_3).format(
             adm0_id=Identifier(ADM0_ID),
             table_out=Identifier(f"adm{ADM_LEVELS}_polygons_tmp1"),
         )
     )
     conn.execute(
-        SQL(query_3).format(
+        SQL(query_4).format(
             table_in1=Identifier(f"adm{ADM_LEVELS}_polygons_tmp1"),
-            ids_src=SQL(",").join(map(lambda x: Identifier("a", x), get_src_ids())),
-            ids_wld=SQL(",").join(map(lambda x: Identifier("a", x), get_wld_ids())),
+            ids_src=SQL(",").join(
+                map(lambda x: Identifier("a", get_adm_id(x)), range(ADM_LEVELS, 0, -1))
+            ),
+            ids_wld=SQL(",").join(map(lambda x: Identifier("a", x), get_wld_ids(conn))),
             id=Identifier(get_adm_id(ADM_LEVELS)),
             table_out=Identifier(f"adm{ADM_LEVELS}_polygons_1"),
         )
     )
     for lvl in range(ADM_LEVELS - 1, 0, -1):
         conn.execute(
-            SQL(query_3).format(
+            SQL(query_4).format(
                 table_in1=Identifier(f"adm{lvl+1}_polygons_1"),
                 ids_src=SQL(",").join(
-                    map(lambda x: Identifier("a", x), get_src_ids(lvl))
+                    map(
+                        lambda x: Identifier("a", get_adm_id(x)),
+                        range(ADM_LEVELS, 0, -1),
+                    )
                 ),
-                ids_wld=SQL(",").join(map(lambda x: Identifier("a", x), get_wld_ids())),
+                ids_wld=SQL(",").join(
+                    map(lambda x: Identifier("a", x), get_wld_ids(conn))
+                ),
                 id=Identifier(f"adm{lvl}_id"),
                 table_out=Identifier(f"adm{lvl}_polygons_1"),
             )

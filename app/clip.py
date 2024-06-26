@@ -2,7 +2,7 @@ import logging
 
 from psycopg.sql import SQL, Identifier, Literal
 
-from .utils import ADM_JOIN, ADM_LEVELS, get_src_ids, get_wld_ids
+from .utils import ADM0_JOIN, ADM_LEVELS, get_src_ids, get_wld_ids
 
 logger = logging.getLogger(__name__)
 
@@ -56,9 +56,13 @@ def main(conn, file):
                 table_in1=Identifier(f"admx_{name}_1"),
                 table_in2=Identifier("adm0_polygons"),
                 id=Literal(name),
-                join=Identifier("b", ADM_JOIN),
-                ids_src=SQL(",").join(map(lambda x: Identifier("a", x), get_src_ids())),
-                ids_wld=SQL(",").join(map(lambda x: Identifier("a", x), get_wld_ids())),
+                join=Identifier("b", ADM0_JOIN),
+                ids_src=SQL(",").join(
+                    map(lambda x: Identifier("a", x), get_src_ids(conn, name))
+                ),
+                ids_wld=SQL(",").join(
+                    map(lambda x: Identifier("a", x), get_wld_ids(conn))
+                ),
                 table_out=Identifier(f"adm{ADM_LEVELS}_{name}_{index}"),
             )
         )

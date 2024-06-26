@@ -25,6 +25,7 @@ def admx(conn, file: Path):
     name = file.stem
     conn = connect(f"dbname={DATABASE}", autocommit=True)
     conn.execute(SQL(drop_tmp).format(table_tmp1=Identifier(f"admx_{name}")))
+    conn.execute(SQL(drop_tmp).format(table_tmp1=Identifier(f"admx_{name}_attributes")))
     conn.execute(SQL(drop_tmp).format(table_tmp1=Identifier(f"admx_{name}_1")))
     for lvl in range(1, ADM_LEVELS + 1):
         conn.execute(SQL(drop_tmp).format(table_tmp1=Identifier(f"adm{lvl}_{name}")))
