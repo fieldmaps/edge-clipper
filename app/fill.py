@@ -40,11 +40,11 @@ query_4 = """
         {ids_src},
         {ids_wld},
         a.geom
-    FROM {table_in} AS a;
+    FROM {table_in1} AS a;
 """
 query_5 = """
     ALTER TABLE {table_in}
-    DROP COLUMN fid;
+    DROP COLUMN IF EXISTS ogc_fid;
 """
 drop_tmp = """
     DROP TABLE IF EXISTS {table_tmp1};
@@ -93,7 +93,7 @@ def main(admx_files: list):
     for lvl in range(ADM_LEVELS - 1, 0, -1):
         conn.execute(
             SQL(query_4).format(
-                table_in=Identifier(f"adm{lvl+1}_polygons_1"),
+                table_in1=Identifier(f"adm{lvl+1}_polygons_1"),
                 ids_src=SQL(",").join(
                     map(
                         lambda x: Identifier("a", get_adm_id(x)),

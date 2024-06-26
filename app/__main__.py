@@ -58,6 +58,7 @@ if __name__ == "__main__":
     else:
         inputs.adm0(get_adm0_file())
         src_admx([inputs.admx, attributes.main, clip.main, dissolve.main])
+        dest_admx(cleanup.dest_admx, [None])
         dest_admx(merge.main, [None])
         src_admx([cleanup.admx])
         fill.main(get_admx_files())
