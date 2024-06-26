@@ -15,13 +15,9 @@ def output_ogr(file, lvl):
             *["--config", "OGR_ORGANIZE_POLYGONS", "ONLY_CCW"],
             *["-f", "OpenFileGDB"],
             *["-mapFieldType", "Integer64=Real,Date=DateTime"],
-            "-unsetFid",
         ]
         if file.suffix == ".gdb"
-        else [
-            *["-lco", "FID=fid"],
-            *["-mapFieldType", "DateTime=Date"],
-        ]
+        else ["-mapFieldType", "DateTime=Date"]
     )
     subprocess.run(
         [

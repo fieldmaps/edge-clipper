@@ -40,7 +40,11 @@ query_4 = """
         {ids_src},
         {ids_wld},
         a.geom
-    FROM {table_in1} AS a;
+    FROM {table_in} AS a;
+"""
+query_5 = """
+    ALTER TABLE {table_in}
+    DROP COLUMN fid;
 """
 drop_tmp = """
     DROP TABLE IF EXISTS {table_tmp1};
@@ -89,7 +93,7 @@ def main(admx_files: list):
     for lvl in range(ADM_LEVELS - 1, 0, -1):
         conn.execute(
             SQL(query_4).format(
-                table_in1=Identifier(f"adm{lvl+1}_polygons_1"),
+                table_in=Identifier(f"adm{lvl+1}_polygons_1"),
                 ids_src=SQL(",").join(
                     map(
                         lambda x: Identifier("a", get_adm_id(x)),
@@ -99,7 +103,6 @@ def main(admx_files: list):
                 ids_wld=SQL(",").join(
                     map(lambda x: Identifier("a", x), get_wld_ids(conn))
                 ),
-                id=Identifier(f"adm{lvl}_id"),
                 table_out=Identifier(f"adm{lvl}_polygons_1"),
             )
         )
@@ -109,12 +112,13 @@ def main(admx_files: list):
                 "ogr2ogr",
                 *["--config", "PG_USE_COPY", "YES"],
                 "-append",
-                *["-f", "PostgreSQL"],
                 *["-nln", f"adm{lvl}_polygons"],
+                *["-f", "PostgreSQL"],
                 f"PG:dbname={DATABASE}",
                 *[f"PG:dbname={DATABASE}", f"adm{lvl}_polygons_1"],
             ]
         )
+        conn.execute(SQL(query_5).format(table_in=Identifier(f"adm{lvl}_polygons")))
         conn.execute(
             SQL(drop_tmp).format(table_tmp1=Identifier(f"adm{lvl}_polygons_1"))
         )

@@ -18,7 +18,6 @@ def adm0():
     conn.execute(SQL(drop_tmp).format(table_tmp1=Identifier("adm0_polygons")))
     conn.execute(SQL(drop_tmp).format(table_tmp1=Identifier("adm0_attributes")))
     conn.close()
-    logger.info("adm0_polygons")
 
 
 def admx(conn, file: Path):
@@ -36,4 +35,3 @@ def dest_admx(lvl: int, _, __):
     conn = connect(f"dbname={DATABASE}", autocommit=True)
     conn.execute(SQL(drop_tmp).format(table_tmp1=Identifier(f"adm{lvl}_polygons")))
     conn.close()
-    logger.info(f"adm{lvl}_polygons")
