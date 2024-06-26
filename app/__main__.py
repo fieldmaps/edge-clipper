@@ -1,18 +1,36 @@
 import logging
-from multiprocessing import Pool
+from math import ceil
+from multiprocessing import Pool, cpu_count
 
-from . import attributes, cleanup, download, fill, inputs, merge, outputs, polygons
-from .utils import ADM_LEVELS, DOWNLOAD, get_adm0_file, get_admx_files
+from . import (
+    attributes,
+    cleanup,
+    clip,
+    dissolve,
+    download,
+    fill,
+    inputs,
+    merge,
+    outputs,
+)
+from .utils import (
+    ADM_LEVELS,
+    DOWNLOAD,
+    THROTTLE,
+    apply_funcs,
+    get_adm0_file,
+    get_admx_files,
+)
 
 logger = logging.getLogger(__name__)
-funcs = [attributes.main, polygons.main]
 
 
-def src_admx(func):
+def src_admx(funcs):
     results = []
-    pool = Pool()
+    pool = Pool(processes=ceil(cpu_count() / THROTTLE))
     for file in get_admx_files():
-        result = pool.apply_async(func, args=[file])
+        args = [file, *funcs]
+        result = pool.apply_async(apply_funcs, args=args)
         results.append(result)
     pool.close()
     pool.join()
@@ -20,12 +38,13 @@ def src_admx(func):
         result.get()
 
 
-def dest_admx(func):
+def dest_admx(func, exts):
     results = []
     pool = Pool()
     for lvl in range(ADM_LEVELS, 0, -1):
-        result = pool.apply_async(func, args=[lvl, get_admx_files()])
-        results.append(result)
+        for ext in exts:
+            result = pool.apply_async(func, args=[lvl, ext, get_admx_files()])
+            results.append(result)
     pool.close()
     pool.join()
     for result in results:
@@ -38,14 +57,11 @@ if __name__ == "__main__":
         download.main()
     else:
         inputs.adm0(get_adm0_file())
-        src_admx(inputs.admx)
-        src_admx(attributes.main)
-        for file in get_admx_files():
-            polygons.main(file)
-        dest_admx(merge.main)
-        src_admx(cleanup.admx)
+        src_admx([inputs.admx, attributes.main, clip.main, dissolve.main])
+        dest_admx(merge.main, [None])
+        src_admx([cleanup.admx])
         fill.main(get_admx_files())
-        dest_admx(outputs.main)
         cleanup.adm0()
-        dest_admx(cleanup.dest_admx)
+        dest_admx(outputs.main, ["gpkg", "gdb"])
+        dest_admx(cleanup.dest_admx, [None])
     logger.info("finished")

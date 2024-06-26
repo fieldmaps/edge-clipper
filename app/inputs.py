@@ -49,7 +49,7 @@ def adm0(file: Path):
     logger.info(file.stem)
 
 
-def admx(file: Path):
+def admx(_, file: Path):
     subprocess.run(
         [
             "ogr2ogr",
@@ -66,4 +66,3 @@ def admx(file: Path):
             file,
         ]
     )
-    logger.info(file.stem)

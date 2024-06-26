@@ -6,7 +6,7 @@ from .utils import DATABASE
 logger = logging.getLogger(__name__)
 
 
-def main(lvl: int, admx_files: list):
+def main(lvl: int, _, admx_files: list):
     for file in admx_files:
         name = file.stem
         subprocess.run(

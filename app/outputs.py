@@ -38,12 +38,12 @@ def output_ogr(file, lvl):
     )
 
 
-def main(lvl, _):
+def main(lvl, ext, _):
     outputs = cwd / "../outputs"
-    gpkg = outputs / f"adm{lvl}_polygons.gpkg"
-    gdb = outputs / f"adm{lvl}_polygons.gdb"
-    gpkg.unlink(missing_ok=True)
-    shutil.rmtree(gdb, ignore_errors=True)
-    output_ogr(gpkg, lvl)
-    output_ogr(gdb, lvl)
-    logger.info(f"adm{lvl}_polygons")
+    output = outputs / f"adm{lvl}_polygons.{ext}"
+    if output.is_file():
+        output.unlink(missing_ok=True)
+    elif output.is_dir():
+        shutil.rmtree(output, ignore_errors=True)
+    output_ogr(output, lvl)
+    logger.info(f"adm{lvl}_polygons.{ext}")

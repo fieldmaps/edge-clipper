@@ -21,7 +21,7 @@ def adm0():
     logger.info("adm0_polygons")
 
 
-def admx(file: Path):
+def admx(conn, file: Path):
     name = file.stem
     conn = connect(f"dbname={DATABASE}", autocommit=True)
     conn.execute(SQL(drop_tmp).format(table_tmp1=Identifier(f"admx_{name}")))
@@ -29,10 +29,9 @@ def admx(file: Path):
     for lvl in range(1, ADM_LEVELS + 1):
         conn.execute(SQL(drop_tmp).format(table_tmp1=Identifier(f"adm{lvl}_{name}")))
     conn.close()
-    logger.info(name)
 
 
-def dest_admx(lvl: int, _):
+def dest_admx(lvl: int, _, __):
     conn = connect(f"dbname={DATABASE}", autocommit=True)
     conn.execute(SQL(drop_tmp).format(table_tmp1=Identifier(f"adm{lvl}_polygons")))
     conn.close()

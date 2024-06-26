@@ -1,10 +1,9 @@
 import logging
 from pathlib import Path
 
-from psycopg import connect
 from psycopg.sql import SQL, Identifier, Literal
 
-from .utils import ADM_LEVELS, DATABASE, get_adm_id, get_src_ids, get_wld_ids
+from .utils import ADM_LEVELS, get_adm_id, get_src_ids, get_wld_ids
 
 logger = logging.getLogger(__name__)
 
@@ -58,9 +57,8 @@ drop_tmp = """
 """
 
 
-def main(file: Path):
+def main(conn, file: Path):
     name = file.stem
-    conn = connect(f"dbname={DATABASE}", autocommit=True)
     conn.execute(
         SQL(query_1).format(
             table_in=Identifier(f"admx_{name}"),
@@ -100,5 +98,3 @@ def main(file: Path):
             table_out=Identifier(f"admx_{name}_tmp1"),
         )
     )
-    conn.close()
-    logger.info(name)

@@ -1,4 +1,5 @@
 import logging
+from decimal import Decimal
 from os import getenv
 from pathlib import Path
 
@@ -37,13 +38,21 @@ def strip_list(items: list):
     return [item.strip() for item in items]
 
 
-ADM_LEVELS = int(getenv("ADM_LEVELS", 4))
+ADM_LEVELS = int(getenv("ADM_LEVELS", "4"))
 ADM_JOIN = getenv("ADM0_JOIN", "")
 ADM0_ID = getenv("ADM0_ID", "")
 ADM_ID = getenv("ADMX_ID", "")
 ADM_COLUMNS = strip_list(getenv("ADMX_COLUMNS", "").split(","))
 ADM_METADATA = strip_list(getenv("ADMX_METADATA", "").split(","))
 DOWNLOAD = getenv("DOWNLOAD", "").lower() in ("true", "yes", "on", "1")
+THROTTLE = Decimal(getenv("THROTTLE", "1"))
+
+
+def apply_funcs(file, *args):
+    conn = connect(f"dbname={DATABASE}", autocommit=True)
+    for func in args:
+        func(conn, file)
+    conn.close()
 
 
 def get_adm0_file():
