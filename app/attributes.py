@@ -8,6 +8,24 @@ from .utils import ADM_LEVELS, DATABASE, get_adm_id, get_src_ids, get_wld_ids
 
 logger = logging.getLogger(__name__)
 
+adm4_id = (
+    [
+        f"{get_adm_id(4)} = COALESCE({get_adm_id(4)}, {get_adm_id(3)}, {get_adm_id(2)}, {get_adm_id(1)})"
+    ]
+    if ADM_LEVELS >= 4
+    else []
+)
+adm3_id = (
+    [f"{get_adm_id(3)} = COALESCE({get_adm_id(3)}, {get_adm_id(2)}, {get_adm_id(1)})"]
+    if ADM_LEVELS >= 3
+    else []
+)
+adm2_id = (
+    [f"{get_adm_id(2)} = COALESCE({get_adm_id(2)}, {get_adm_id(1)})"]
+    if ADM_LEVELS >= 2
+    else []
+)
+
 query_1 = """
     DROP TABLE IF EXISTS {table_out};
     CREATE TABLE {table_out} AS
@@ -21,13 +39,7 @@ query_3 = """
     ALTER TABLE {table_out}
     ADD COLUMN IF NOT EXISTS {name} VARCHAR;
 """
-query_4 = f"""
-    UPDATE {{table_out}}
-    SET
-        {get_adm_id(4)} = COALESCE({get_adm_id(4)}, {get_adm_id(3)}, {get_adm_id(2)}, {get_adm_id(1)}),
-        {get_adm_id(3)} = COALESCE({get_adm_id(3)}, {get_adm_id(2)}, {get_adm_id(1)}),
-        {get_adm_id(2)} = COALESCE({get_adm_id(2)}, {get_adm_id(1)});
-"""
+query_4 = f"UPDATE {{table_out}} SET {','.join([*adm4_id, *adm3_id, *adm2_id])};"
 query_5 = """
     DROP TABLE IF EXISTS {table_out};
     CREATE TABLE {table_out} AS

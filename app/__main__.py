@@ -1,7 +1,7 @@
 import logging
 from multiprocessing import Pool
 
-from . import attributes, cleanup, download, inputs, merge, outputs, polygons, template
+from . import attributes, cleanup, download, fill, inputs, merge, outputs, polygons
 from .utils import ADM_LEVELS, DOWNLOAD, get_adm0_file, get_admx_files
 
 logger = logging.getLogger(__name__)
@@ -42,9 +42,9 @@ if __name__ == "__main__":
         src_admx(attributes.main)
         for file in get_admx_files():
             polygons.main(file)
-        template.main(get_admx_files())
         dest_admx(merge.main)
         src_admx(cleanup.admx)
+        fill.main(get_admx_files())
         dest_admx(outputs.main)
         cleanup.adm0()
         dest_admx(cleanup.dest_admx)

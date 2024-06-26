@@ -46,7 +46,7 @@ def adm0(file: Path):
     colnames.remove("geom")
     conn.execute(SQL(query_2).format(cols=SQL(",").join(map(Identifier, colnames))))
     conn.close()
-    logger.info(file.name)
+    logger.info(file.stem)
 
 
 def admx(file: Path):
