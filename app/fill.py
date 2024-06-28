@@ -44,7 +44,8 @@ query_4 = """
 """
 query_5 = """
     ALTER TABLE {table_in}
-    DROP COLUMN IF EXISTS ogc_fid;
+    DROP COLUMN IF EXISTS ogc_fid,
+    DROP COLUMN IF EXISTS OBJECTID;
 """
 drop_tmp = """
     DROP TABLE IF EXISTS {table_tmp1};
