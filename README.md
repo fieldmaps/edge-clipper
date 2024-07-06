@@ -1,8 +1,8 @@
-# Edge Matcher
+# Edge Clipper
 
 ## Usage
 
-The only requirements are to download [this repository](https://github.com/fieldmaps/edge-matcher/archive/refs/heads/main.zip) and install [Docker Desktop](https://www.docker.com/products/docker-desktop). Add files to the included `inputs` directory, where they'll be processed to the `outputs` directory. Within the `inputs` directory, there are two subdirectories:
+The only requirements are to download [this repository](https://github.com/fieldmaps/edge-clipper/archive/refs/heads/main.zip) and install [Docker Desktop](https://www.docker.com/products/docker-desktop). Add files to the included `inputs` directory, where they'll be processed to the `outputs` directory. Within the `inputs` directory, there are two subdirectories:
 
 - `inputs/adm0`: This is the global admin level 0 file used for clipping.
 - `inputs/admx`: Contains all the subnational admin layers in [extended formats](https://github.com/fieldmaps/edge-extender). There can be a mix of different admin levels contained within this directory.
