@@ -2,7 +2,7 @@ import zipfile
 
 import httpx
 
-from .utils import cwd, ignore_list, special_list
+from .utils import cwd, ignore_list
 
 
 def download_adm0():
@@ -47,8 +47,6 @@ def download_admx():
             with zipfile.ZipFile(zip_file, "r") as z:
                 z.extractall(inputs)
             file_lower.rename(file)
-            if key in special_list:
-                file.rename(file.with_stem(key.upper() + "_1"))
             zip_file.unlink()
 
 

@@ -31,7 +31,6 @@ ignore_list = [
     "xkx",
     "xss",
 ]
-special_list = ["geo", "srb"]
 
 
 def strip_list(items: list):
